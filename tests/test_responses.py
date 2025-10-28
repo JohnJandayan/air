@@ -1,5 +1,3 @@
-from typing import Any
-
 from fastapi.testclient import TestClient
 
 import air
@@ -154,7 +152,7 @@ def test_custom_name_in_response() -> None:
 
 def test_AirResponse_with_layout_strings() -> None:
     class CustomLayoutResponse(air.AirResponse):
-        def render(self, content: Any) -> bytes:
+        def render(self, content: object) -> bytes:
             content = super().render(content)
             return f"<html><body><h1>Custom Layout</h1>{content}</body></html>".encode()
 
@@ -174,7 +172,7 @@ def test_AirResponse_with_layout_strings() -> None:
 
 def test_AirResponse_with_layout_names() -> None:
     class CustomLayoutResponse(air.AirResponse):
-        def render(self, content: Any) -> bytes:
+        def render(self, content: object) -> bytes:
             content = super().render(content).decode("utf-8")
             return air.Html(air.Raw(content)).render().encode("utf-8")
 

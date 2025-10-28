@@ -8,7 +8,7 @@ from collections.abc import Mapping
 from functools import cached_property
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, ClassVar, Final, Self, TypedDict
+from typing import ClassVar, Final, Self, TypedDict
 
 from ..utils import (
     SafeStr,
@@ -65,7 +65,7 @@ class BaseTag:
         self._children: tuple[Renderable, ...] = children
         self._attrs: dict[str, AttributesType] = kwargs
 
-    def __new__(cls, *args: Any, **kwargs: Any) -> Self:
+    def __new__(cls, *args: object, **kwargs: object) -> Self:
         """Create a tag instance while preventing direct BaseTag instantiation.
 
         Raises:
@@ -123,7 +123,7 @@ class BaseTag:
             return ""
         return "".join(self._render_child(child) for child in self._children)
 
-    def _render_child(self, child: Any) -> str:
+    def _render_child(self, child: object) -> str:
         """Render a single child element.
 
         Args:

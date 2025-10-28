@@ -323,7 +323,7 @@ class Air(FastAPI):
         ] = None,
         path_separator: Annotated[Literal["/", "-"], Doc("An optional path separator.")] = "-",
         **extra: Annotated[
-            Any,
+            object,
             Doc(
                 """
                 Extra keyword arguments to be stored in the app, not used by FastAPI
@@ -408,7 +408,7 @@ class Air(FastAPI):
         ],
         *,
         response_model: Annotated[
-            Any,
+            object,
             Doc(
                 """
                 The type to use for the response.
@@ -796,7 +796,7 @@ class Air(FastAPI):
         ],
         *,
         response_model: Annotated[
-            Any,
+            object,
             Doc(
                 """
                 The type to use for the response.

@@ -7,7 +7,6 @@ from functools import wraps
 from types import FunctionType
 from typing import (
     Annotated,
-    Any,
     Literal,
     override,
 )
@@ -38,7 +37,7 @@ class AirRoute(APIRoute):
     def get_route_handler(self) -> Callable:
         original_route_handler = super().get_route_handler()
 
-        async def custom_route_handler(request: Any) -> Response:
+        async def custom_route_handler(request: object) -> Response:
             request = AirRequest(request.scope, request.receive)
             return await original_route_handler(request)
 
@@ -111,7 +110,7 @@ class AirRouter(APIRouter):
             ),
         ] = AirResponse,
         responses: Annotated[
-            dict[int | str, dict[str, Any]] | None,
+            dict[int | str, dict[str, object]] | None,
             Doc(
                 """
                 Additional responses to be shown in OpenAPI.
@@ -181,7 +180,7 @@ class AirRouter(APIRouter):
             ),
         ] = None,
         dependency_overrides_provider: Annotated[
-            Any | None,
+            object | None,
             Doc(
                 """
                 Only used internally by FastAPI to handle dependency overrides.
@@ -203,7 +202,7 @@ class AirRouter(APIRouter):
             ),
         ] = AirRoute,
         on_startup: Annotated[
-            Sequence[Callable[[], Any]] | None,
+            Sequence[Callable[[], object]] | None,
             Doc(
                 """
                 A list of startup event handler functions.
@@ -215,7 +214,7 @@ class AirRouter(APIRouter):
             ),
         ] = None,
         on_shutdown: Annotated[
-            Sequence[Callable[[], Any]] | None,
+            Sequence[Callable[[], object]] | None,
             Doc(
                 """
                 A list of shutdown event handler functions.
@@ -230,7 +229,7 @@ class AirRouter(APIRouter):
         # the generic to Lifespan[AppType] is the type of the top level application
         # which the router cannot know statically, so we use typing.Any
         lifespan: Annotated[
-            Lifespan[Any] | None,
+            Lifespan[object] | None,
             Doc(
                 """
                 A `Lifespan` context manager handler. This replaces `startup` and
@@ -356,7 +355,7 @@ class AirRouter(APIRouter):
         ],
         *,
         response_model: Annotated[
-            Any,
+            object | None,
             Doc(
                 """
                 The type to use for the response.
@@ -469,7 +468,7 @@ class AirRouter(APIRouter):
             ),
         ] = "Successful Response",
         responses: Annotated[
-            dict[int | str, dict[str, Any]] | None,
+            dict[int | str, dict[str, object]] | None,
             Doc(
                 """
                 Additional responses that could be returned by this *path operation*.
@@ -647,7 +646,7 @@ class AirRouter(APIRouter):
             ),
         ] = None,
         openapi_extra: Annotated[
-            dict[str, Any] | None,
+            dict[str, object] | None,
             Doc(
                 """
                 Extra metadata to be included in the OpenAPI schema for this *path
@@ -673,7 +672,7 @@ class AirRouter(APIRouter):
                 """
             ),
         ] = generate_unique_id,
-    ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    ) -> Callable[[Callable[..., object]], Callable[..., object]]:
         """
         Add a *path operation* using an HTTP GET operation.
 
@@ -695,7 +694,7 @@ class AirRouter(APIRouter):
         ```
         """
 
-        def decorator[**P, R](func: Callable[P, MaybeAwaitable[R]]) -> Callable[..., Any]:
+        def decorator[**P, R](func: Callable[P, MaybeAwaitable[R]]) -> Callable[..., object]:
             @wraps(func)
             async def endpoint(*args: P.args, **kw: P.kwargs) -> Response:
                 result = func(*args, **kw)
@@ -748,7 +747,7 @@ class AirRouter(APIRouter):
         ],
         *,
         response_model: Annotated[
-            Any,
+            object,
             Doc(
                 """
                 The type to use for the response.
@@ -861,7 +860,7 @@ class AirRouter(APIRouter):
             ),
         ] = "Successful Response",
         responses: Annotated[
-            dict[int | str, dict[str, Any]] | None,
+            dict[int | str, dict[str, object]] | None,
             Doc(
                 """
                 Additional responses that could be returned by this *path operation*.
@@ -1039,7 +1038,7 @@ class AirRouter(APIRouter):
             ),
         ] = None,
         openapi_extra: Annotated[
-            dict[str, Any] | None,
+            dict[str, object] | None,
             Doc(
                 """
                 Extra metadata to be included in the OpenAPI schema for this *path
@@ -1065,12 +1064,12 @@ class AirRouter(APIRouter):
                 """
             ),
         ] = generate_unique_id,
-    ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    ) -> Callable[[Callable[..., object]], Callable[..., object]]:
         """
         Add a *path operation* using an HTTP POST operation.
         """
 
-        def decorator[**P, R](func: Callable[P, MaybeAwaitable[R]]) -> Callable[..., Any]:
+        def decorator[**P, R](func: Callable[P, MaybeAwaitable[R]]) -> Callable[..., object]:
             @wraps(func)
             async def endpoint(*args: P.args, **kw: P.kwargs) -> Response:
                 result = func(*args, **kw)

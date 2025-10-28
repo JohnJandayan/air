@@ -2,7 +2,7 @@
 
 import json
 from dataclasses import dataclass, field
-from typing import Any, Final
+from typing import Final
 from urllib.parse import urlsplit, urlunsplit
 
 from starlette.datastructures import Headers as Headers
@@ -71,7 +71,7 @@ class HtmxDetails:
     """The name of the triggered element if it exists, or `None`. Based on the `HX-Trigger-Name` header."""
 
     # TODO this requires an HTMX extension, evaluate if it makes sense to use it
-    triggering_event: Any = field(init=False)
+    triggering_event: object = field(init=False)
 
     def __post_init__(self) -> None:
         self.is_hx_request = self.headers.get(HX_REQUEST) == "true"
@@ -140,7 +140,7 @@ class HtmxDetails:
             return urlunsplit(split._replace(scheme="", netloc=""))
         return None
 
-    def _parse_triggering_event(self, headers: Headers) -> Any:
+    def _parse_triggering_event(self, headers: Headers) -> object:
         for name in TRIGGERING_EVENT_ALIASES:
             raw = headers.get(name)
             if raw is not None:

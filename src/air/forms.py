@@ -5,7 +5,7 @@ Pro-tip: Always validate incoming data."""
 import re
 from collections.abc import Callable, Sequence
 from types import UnionType
-from typing import Any, Literal, Self, Union, get_args, get_origin
+from typing import Literal, Self, Union, get_args, get_origin
 
 import annotated_types
 from pydantic import AliasChoices, AliasPath, BaseModel, Discriminator, Field, JsonValue, ValidationError
@@ -51,7 +51,7 @@ class AirForm:
     """
 
     model: type[BaseModel] | None = None
-    data: Any = None  # TODO change type to something more specific
+    data: object = None  # TODO change type to something more specific
     initial_data: dict | None = None
     errors: list[ErrorDetails] | None = None
     is_valid: bool = False
@@ -63,11 +63,11 @@ class AirForm:
             raise NotImplementedError(msg)
         self.initial_data = initial_data
 
-    async def __call__(self, form_data: dict[Any, Any] | FormData) -> Self:
+    async def __call__(self, form_data: dict[object, object] | FormData) -> Self:
         self.validate(form_data)
         return self
 
-    def validate(self, form_data: dict[Any, Any] | FormData) -> bool:
+    def validate(self, form_data: dict[object, object] | FormData) -> bool:
         # Store the submitted data to preserve values on error
         self.submitted_data = dict(form_data) if hasattr(form_data, "items") else form_data
         try:
@@ -109,7 +109,7 @@ class AirForm:
         )
 
 
-def pydantic_type_to_html_type(field_info: Any) -> str:
+def pydantic_type_to_html_type(field_info: object) -> str:
     """Return HTML type from pydantic type.
 
     Default to 'text' for unknown types.
@@ -227,9 +227,9 @@ def default_form_widget(
 
 
 def AirField(
-    default: Any = PydanticUndefined,
+    default: object = PydanticUndefined,
     *,
-    default_factory: Callable[[], Any] | Callable[[dict[str, Any]], Any] | None = None,
+    default_factory: Callable[[], object] | Callable[[dict[str, object]], object] | None = None,
     alias: str | None = None,
     alias_priority: int | None = None,
     validation_alias: str | AliasPath | AliasChoices | None = None,
@@ -237,9 +237,9 @@ def AirField(
     title: str | None = None,
     field_title_generator: Callable[[str, FieldInfo], str] | None = None,
     description: str | None = None,
-    examples: list[Any] | None = None,
+    examples: list[object] | None = None,
     exclude: bool | None = None,
-    exclude_if: Callable[[Any], bool] | None = None,
+    exclude_if: Callable[[object], bool] | None = None,
     discriminator: str | Discriminator | None = None,
     deprecated: Deprecated | str | bool | None = None,
     json_schema_extra: dict[str, JsonValue] | None = None,
@@ -268,8 +268,8 @@ def AirField(
     type: str | None = None,
     label: str | None = None,
     autofocus: bool = False,
-    **extra: Any,
-) -> Any:
+    **extra: object,
+) -> object:
     """A wrapper around pydantic.Field to provide a cleaner interface for defining
     special input types and labels in air forms.
 

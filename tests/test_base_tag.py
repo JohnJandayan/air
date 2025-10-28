@@ -6,7 +6,7 @@ import sys
 import types
 from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, cast
+from typing import cast
 
 import pytest
 
@@ -76,7 +76,7 @@ def test_render_in_the_browser_uses_helper(monkeypatch: pytest.MonkeyPatch) -> N
 
 
 def test_pretty_render_in_the_browser_uses_pretty_render(monkeypatch: pytest.MonkeyPatch) -> None:
-    pretty_calls: list[dict[str, Any]] = []
+    pretty_calls: list[dict[str, object]] = []
     browser_calls: list[str] = []
 
     def fake_pretty_format(html: str, **kwargs: bool) -> str:
@@ -101,7 +101,7 @@ def test_pretty_render_in_the_browser_uses_pretty_render(monkeypatch: pytest.Mon
 
 
 def test_pretty_render_passes_flags_to_formatter(monkeypatch: pytest.MonkeyPatch) -> None:
-    calls: list[dict[str, Any]] = []
+    calls: list[dict[str, object]] = []
 
     def fake_formatter(html: str, **kwargs: bool) -> str:
         calls.append({"html": html, "kwargs": kwargs})
@@ -221,11 +221,11 @@ def test_to_json_and_to_pretty_json_round_trip() -> None:
 
 
 def test_to_pretty_dict_uses_rich_when_available(monkeypatch: pytest.MonkeyPatch) -> None:
-    captured: dict[str, Any] = {}
+    captured: dict[str, object] = {}
     rich_module = types.ModuleType("rich")
     rich_pretty_module = types.ModuleType("rich.pretty")
 
-    def fake_pretty_repr(data: TagDictType, **kwargs: Any) -> str:
+    def fake_pretty_repr(data: TagDictType, **kwargs: object) -> str:
         captured["data"] = data
         captured["kwargs"] = kwargs
         return "pretty"
@@ -247,11 +247,11 @@ def test_to_pretty_dict_falls_back_when_rich_missing(monkeypatch: pytest.MonkeyP
 
     def fake_import(
         name: str,
-        globals_: dict[str, Any] | None = None,
-        locals_: dict[str, Any] | None = None,
+        globals_: dict[str, object] | None = None,
+        locals_: dict[str, object] | None = None,
         fromlist: tuple[str, ...] = (),
         level: int = 0,
-    ) -> Any:
+    ) -> object:
         if name == "rich.pretty":
             raise ModuleNotFoundError
         return original_import(name, globals_, locals_, fromlist, level)
@@ -279,7 +279,7 @@ def test_from_dict_and_from_json_restore_instances() -> None:
 
 
 def test_from_child_dict_handles_nested_and_plain_values() -> None:
-    child_dict: tuple[Any, ...] = (
+    child_dict: tuple[object, ...] = (
         "plain",
         {
             "name": "SampleTag",
@@ -288,7 +288,7 @@ def test_from_child_dict_handles_nested_and_plain_values() -> None:
         },
     )
 
-    restored = WrapperTag._from_child_dict(cast(Any, child_dict))
+    restored = WrapperTag._from_child_dict(cast(object, child_dict))
 
     assert restored[0] == "plain"
     assert isinstance(restored[1], SampleTag)
