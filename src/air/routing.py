@@ -8,6 +8,7 @@ from types import FunctionType
 from typing import (
     Annotated,
     Literal,
+    Protocol,
     override,
 )
 from warnings import deprecated
@@ -28,6 +29,29 @@ from .requests import AirRequest
 from .responses import AirResponse
 from .types import MaybeAwaitable
 from .utils import compute_page_path, default_generate_unique_id
+
+
+class RouteCallable(Protocol):
+    """Protocol for route functions.
+
+    This protocol represents the interface of functions after being decorated
+    by route decorators like @app.get(), @app.post(), or @app.page(). The decorator
+    adds a .url() method to the function, allowing programmatic URL generation.
+
+    Example:
+        @app.get("/users/{user_id}")
+        def get_user(user_id: int) -> air.H1:
+            return air.H1(f"User {user_id}")
+
+        # The decorated function now has a .url() method
+        url = get_user.url(user_id=123)  # Returns: "/users/123"
+    """
+
+    __call__: Callable[..., Any]
+    __name__: str
+
+    def url(self, **path_params: Any) -> str:
+        return ""
 
 
 class AirRoute(APIRoute):
@@ -310,7 +334,7 @@ class AirRouter(APIRouter):
             assert prefix.startswith("/"), "A path prefix must start with '/'"
             assert not prefix.endswith("/"), "A path prefix must not end with '/' except for the root path"
 
-    def page(self, func: FunctionType) -> FunctionType:
+    def page(self, func: FunctionType) -> RouteCallable:
         """Decorator that creates a GET route using the function name as the path.
 
         If the name of the function is "index", then the route is "/".
@@ -694,7 +718,7 @@ class AirRouter(APIRouter):
         ```
         """
 
-        def decorator[**P, R](func: Callable[P, MaybeAwaitable[R]]) -> Callable[..., object]:
+        def decorator[**P, R](func: Callable[P, MaybeAwaitable[R]]) -> Callable[..., Any]:
             @wraps(func)
             async def endpoint(*args: P.args, **kw: P.kwargs) -> Response:
                 result = func(*args, **kw)
@@ -705,7 +729,7 @@ class AirRouter(APIRouter):
                 # Force HTML for non-Response results
                 return response_class(result)
 
-            return super(AirRouter, self).get(
+            decorated = super(AirRouter, self).get(
                 path,
                 response_model=response_model,
                 status_code=status_code,
@@ -730,6 +754,9 @@ class AirRouter(APIRouter):
                 openapi_extra=openapi_extra,
                 generate_unique_id_function=generate_unique_id_function,
             )(endpoint)
+
+            decorated.url = self._url_helper(name or endpoint.__name__)
+            return decorated
 
         return decorator
 
@@ -1069,7 +1096,7 @@ class AirRouter(APIRouter):
         Add a *path operation* using an HTTP POST operation.
         """
 
-        def decorator[**P, R](func: Callable[P, MaybeAwaitable[R]]) -> Callable[..., object]:
+        def decorator[**P, R](func: Callable[P, MaybeAwaitable[R]]) -> Callable[..., Any]:
             @wraps(func)
             async def endpoint(*args: P.args, **kw: P.kwargs) -> Response:
                 result = func(*args, **kw)
@@ -1080,7 +1107,7 @@ class AirRouter(APIRouter):
                 # Force HTML for non-Response results
                 return response_class(result)
 
-            return super(AirRouter, self).post(
+            decorated = super(AirRouter, self).post(
                 path,
                 response_model=response_model,
                 status_code=status_code,
@@ -1106,4 +1133,38 @@ class AirRouter(APIRouter):
                 generate_unique_id_function=generate_unique_id_function,
             )(endpoint)
 
+            decorated.url = self._url_helper(name or endpoint.__name__)
+            return decorated
+
         return decorator
+
+    def _url_helper(self, name: str) -> Callable[..., str]:
+        """Helper function to generate URLs for route operations.
+
+        Creates a callable that generates URLs for a specific route by wrapping
+        Starlette's `url_path_for` method.
+
+        Args:
+            name: The route operation name (usually the function name or custom name).
+
+        Returns:
+            A function that accepts **params (path parameters) and returns the
+            generated URL string.
+
+        Raises:
+            NoMatchFound: If the route name doesn't exist or if the provided
+                parameters don't match the route's path parameters.
+
+        Example:
+            @app.get("/users/{user_id}")
+            def get_user(user_id: int):
+                return air.H1(f"User {user_id}")
+
+            # The .url() method is created by this helper
+            url = get_user.url(user_id=123)  # Returns: "/users/123"
+        """
+
+        def helper_function(**params: Any) -> str:
+            return self.url_path_for(name, **params)
+
+        return helper_function
